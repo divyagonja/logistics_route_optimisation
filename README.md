@@ -1,3 +1,5 @@
+DEMO - https://dairyrouteoptimizer.netlify.app/
+
 # 🚚 Dairy Logistics Route Optimizer
 
 A sophisticated React application that optimizes delivery routes for a dairy distribution company in Ahmedabad. The system automatically calculates the most efficient delivery routes for two trucks, minimizing fuel costs and travel distance while ensuring optimal customer coverage.
