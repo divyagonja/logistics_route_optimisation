@@ -206,11 +206,12 @@ function twoOptImprovement(
 
 /**
  * Optimize routes for two trucks
+ * Now uses async/await for road distance calculations
  */
-export function optimizeRoutes(
+export async function optimizeRoutes(
   customers: Customer[], 
   warehouse: Warehouse
-): TruckRoute[] {
+): Promise<TruckRoute[]> {
   if (customers.length === 0) {
     return [];
   }
@@ -230,13 +231,14 @@ export function optimizeRoutes(
   const colors = ['#0F52BA', '#00AB66']; // Blue and Green
   const names = ['Route Truck 1', 'Route Truck 2'];
   
+  // Process each group sequentially with async/await
   for (let i = 0; i < 2; i++) {
     const groupCustomers = groups[i];
     
     if (groupCustomers.length === 0) continue;
     
-    // Calculate distance matrix including warehouse
-    const distanceMatrix = calculateDistanceMatrix(groupCustomers, warehouse);
+    // Calculate distance matrix including warehouse - now async
+    const distanceMatrix = await calculateDistanceMatrix(groupCustomers, warehouse);
     
     // Run TSP algorithm (nearest neighbor + 2-opt)
     let tour = nearestNeighborTSP(0, Array(groupCustomers.length + 1).fill(0).map((_, i) => i), distanceMatrix);

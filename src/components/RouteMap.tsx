@@ -109,73 +109,83 @@ const RouteMap: React.FC = () => {
         </Marker>
         
         {/* Routes and Customer Markers */}
-        {routes.map(route => {
-          const isSelected = selectedRouteId === null || selectedRouteId === route.id;
-          if (!isSelected) return null;
-          
-          const sortedStops = [...route.stops].sort((a, b) => a.sequenceNumber - b.sequenceNumber);
-          
-          // Create route path including warehouse at start and end
-          const routePath: [number, number][] = [
-            [warehouse.latitude, warehouse.longitude],
-            ...sortedStops.map(stop => [stop.customer.latitude, stop.customer.longitude] as [number, number]),
-            [warehouse.latitude, warehouse.longitude]
-          ];
-          
-          return (
-            <React.Fragment key={route.id}>
-              {/* Route line with animation */}
-              <Polyline
-                positions={routePath}
-                pathOptions={{ 
-                  color: route.color,
-                  weight: 4,
-                  opacity: 0.7,
-                  dashArray: '10, 10',
-                  lineCap: 'round'
-                }}
-              >
-                <Popup>
-                  <div className="text-center">
-                    <h3 className="font-bold" style={{ color: route.color }}>{route.name}</h3>
-                    <p className="text-sm text-gray-600">
-                      {route.stops.length} stops • {route.totalDistance.toFixed(2)} km
-                    </p>
-                  </div>
-                </Popup>
-              </Polyline>
-              
-              {/* Customer markers */}
-              {sortedStops.map(stop => (
-                <Marker
-                  key={stop.customer.id}
-                  position={[stop.customer.latitude, stop.customer.longitude]}
-                  icon={getCustomerIcon(route.color, stop.sequenceNumber)}
+        {routes.length > 0 ? (
+          routes.map(route => {
+            // When 'All Routes' is selected (selectedRouteId is null), show all routes
+            // When a specific route is selected, show only that route
+            const shouldShowRoute = selectedRouteId === null || selectedRouteId === route.id;
+            
+            // Skip rendering this route if it shouldn't be shown
+            if (!shouldShowRoute) return null;
+            
+            const sortedStops = [...route.stops].sort((a, b) => a.sequenceNumber - b.sequenceNumber);
+            
+            // Create route path including warehouse at start and end
+            const routePath: [number, number][] = [
+              [warehouse.latitude, warehouse.longitude],
+              ...sortedStops.map(stop => [stop.customer.latitude, stop.customer.longitude] as [number, number]),
+              [warehouse.latitude, warehouse.longitude]
+            ];
+            
+            return (
+              <React.Fragment key={route.id}>
+                {/* Route line with animation */}
+                <Polyline
+                  positions={routePath}
+                  pathOptions={{ 
+                    color: route.color,
+                    weight: 4,
+                    opacity: 0.7,
+                    dashArray: '10, 10',
+                    lineCap: 'round'
+                  }}
                 >
                   <Popup>
-                    <div>
-                      <h3 className="font-bold">{stop.customer.businessName}</h3>
-                      <p className="text-sm text-gray-600">Stop #{stop.sequenceNumber}</p>
-                      <p className="text-xs text-gray-500">
-                        {stop.customer.latitude.toFixed(6)}, {stop.customer.longitude.toFixed(6)}
+                    <div className="text-center">
+                      <h3 className="font-bold" style={{ color: route.color }}>{route.name}</h3>
+                      <p className="text-sm text-gray-600">
+                        {route.stops.length} stops • {route.totalDistance.toFixed(2)} km
                       </p>
-                      {stop.customer.googleMapsLink && (
-                        <a 
-                          href={stop.customer.googleMapsLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-500 text-sm block mt-1 hover:underline"
-                        >
-                          View on Google Maps
-                        </a>
-                      )}
                     </div>
                   </Popup>
-                </Marker>
-              ))}
-            </React.Fragment>
-          );
-        })}
+                </Polyline>
+                
+                {/* Customer markers */}
+                {sortedStops.map(stop => (
+                  <Marker
+                    key={stop.customer.id}
+                    position={[stop.customer.latitude, stop.customer.longitude]}
+                    icon={getCustomerIcon(route.color, stop.sequenceNumber)}
+                  >
+                    <Popup>
+                      <div>
+                        <h3 className="font-bold">{stop.customer.businessName}</h3>
+                        <p className="text-sm text-gray-600">Stop #{stop.sequenceNumber}</p>
+                        <p className="text-xs text-gray-500">
+                          {stop.customer.latitude.toFixed(6)}, {stop.customer.longitude.toFixed(6)}
+                        </p>
+                        {stop.customer.googleMapsLink && (
+                          <a 
+                            href={stop.customer.googleMapsLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 text-sm block mt-1 hover:underline"
+                          >
+                            View on Google Maps
+                          </a>
+                        )}
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))}
+              </React.Fragment>
+            );
+          })
+        ) : (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-lg shadow-md z-[1000]">
+            <p className="text-gray-700">No routes available. Please optimize routes first.</p>
+          </div>
+        )}
       </MapContainer>
     </motion.div>
   );

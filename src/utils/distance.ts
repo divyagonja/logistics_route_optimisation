@@ -1,4 +1,5 @@
 import { Coordinates, Customer, Warehouse } from '../types';
+import { calculateRoadDistanceMatrix } from './routeApi';
 
 /**
  * Calculate distance between two coordinates using Haversine formula
@@ -25,28 +26,37 @@ function deg2rad(deg: number): number {
 
 /**
  * Calculate distance matrix for a set of customers and warehouse
+ * Uses road distances via API when possible, falls back to straight-line distances
  */
-export function calculateDistanceMatrix(
+export async function calculateDistanceMatrix(
   customers: Customer[], 
   warehouse: Warehouse
-): number[][] {
+): Promise<number[][]> {
   const points = [
     { lat: warehouse.latitude, lng: warehouse.longitude },
     ...customers.map(c => ({ lat: c.latitude, lng: c.longitude }))
   ];
   
-  const n = points.length;
-  const distanceMatrix: number[][] = Array(n).fill(0).map(() => Array(n).fill(0));
-  
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < n; j++) {
-      if (i !== j) {
-        distanceMatrix[i][j] = calculateDistance(points[i], points[j]);
+  try {
+    // Try to get road distances using the OpenRouteService API
+    return await calculateRoadDistanceMatrix(points);
+  } catch (error) {
+    console.error('Failed to get road distances, falling back to straight-line distances:', error);
+    
+    // Fallback to straight-line distances
+    const n = points.length;
+    const distanceMatrix: number[][] = Array(n).fill(0).map(() => Array(n).fill(0));
+    
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        if (i !== j) {
+          distanceMatrix[i][j] = calculateDistance(points[i], points[j]);
+        }
       }
     }
+    
+    return distanceMatrix;
   }
-  
-  return distanceMatrix;
 }
 
 /**

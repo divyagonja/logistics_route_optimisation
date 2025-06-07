@@ -31,20 +31,22 @@ export const RouteProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const optimizeRoutesForCustomers = useCallback(() => {
     setIsLoading(true);
     
-    try {
-      const optimizedRoutes = optimizeRoutes(customers, warehouse);
-      setRoutes(optimizedRoutes);
-      
-      // Select first route by default if available and none selected
-      if (optimizedRoutes.length > 0 && !selectedRouteId) {
-        setSelectedRouteId(optimizedRoutes[0].id);
+    // Use async/await with optimizeRoutes
+    (async () => {
+      try {
+        const optimizedRoutes = await optimizeRoutes(customers, warehouse);
+        setRoutes(optimizedRoutes);
+        
+        // Don't automatically select a route, let user choose
+        // This ensures 'All Routes' works correctly
+        setSelectedRouteId(null);
+      } catch (error) {
+        console.error('Error optimizing routes:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error optimizing routes:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [customers, selectedRouteId]);
+    })();
+  }, [customers]);
 
   const importCustomersFromCSV = useCallback(async (file: File) => {
     setIsLoading(true);
